@@ -5,15 +5,17 @@ import (
 	"encoding/json"
 	"log"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/kaashmonee/signallm/internal/llm"
+	"github.com/kaashmonee/signallm/internal/util"
 )
 
 type Bot struct {
-	Number       string
-	msgsReceived chan string
-	Client       *llm.ChatClient
+	Number string
+	Name   string
+	Client *llm.ChatClient
 }
 
 type GroupInfo struct {
@@ -42,9 +44,9 @@ func NewBot() (*Bot, error) {
 	}
 
 	return &Bot{
-		Number:       "+12069840296",
-		msgsReceived: make(chan string),
-		Client:       chatClient,
+		Number: "+12069840296",
+		Name:   "mike ox",
+		Client: chatClient,
 	}, nil
 }
 
@@ -102,9 +104,10 @@ func (b *Bot) sendMessage(message, recipient, groupID string) error {
 }
 
 func (b *Bot) generateResponse(evnt Event) (string, error) {
-	// If there's no message, just ignore this event
-	msg := evnt.Envelope.DataMessage.Message
-	if msg == "" {
+	// If the message doens't contain the name of the AI or only contains the name of the AI with
+	// nothing else,then ignore the message
+	msg := util.RemoveName(evnt.Envelope.DataMessage.Message, b.Name)
+	if strings.Trim(msg, " ") == "" {
 		return "", nil
 	}
 
@@ -138,7 +141,9 @@ func (b *Bot) Start() {
 			}
 
 			err = b.sendMessage(response, evnt.Envelope.SourceNumber, evnt.Envelope.DataMessage.GroupInfo.GroupID)
-			log.Printf("encountered error while trying to execute command with error: %v", err)
+			if err != nil {
+				log.Printf("encountered error while trying to execute command with error: %v", err)
+			}
 		}
 	}
 }

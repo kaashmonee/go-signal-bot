@@ -13,7 +13,6 @@ func TestBotInit(t *testing.T) {
 		t.Errorf("error initializing bot: %v", err)
 	}
 
-	assert.NotNil(t, bot.msgsReceived)
 	assert.NotEmpty(t, bot.Number)
 }
 
