@@ -30,28 +30,32 @@ func TestUnmarshalToEvent(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			result, err := unmarshalToEvent(tt.input)
+			results, err := unmarshalToEvents(tt.input)
 			assert.NoError(t, err)
-			switch tt.name {
-			case "empty", "does not contain message":
-				assert.Equal(t, result.Envelope.DataMessage.Message, "")
-			case "contains message":
-				assert.Equal(t, result.Envelope.DataMessage.Message, "hi")
+			for _, result := range results {
+				switch tt.name {
+				case "empty", "does not contain message":
+					assert.Equal(t, result.Envelope.DataMessage.Message, "")
+				case "contains message":
+					assert.Equal(t, result.Envelope.DataMessage.Message, "hi")
+				}
 			}
 		})
 	}
 }
 
-func TestSend(t *testing.T) {
+func TestSendToSingleRecipient(t *testing.T) {
 	bot, err := NewBot()
 	assert.Nil(t, err)
 
-	err = bot.sendMessage("hi")
+	err = bot.sendMessage("hi", "+12246000039", "")
 	assert.Nil(t, err, "encountered error: %v", err)
 }
 
-// func TestReceive(t *testing.T) {
-// 	bot, err := NewBot()
-// 	assert.NotNil(t, err)
+func TestSendToGroup(t *testing.T) {
+	bot, err := NewBot()
+	assert.Nil(t, err)
 
-// }
+	err = bot.sendMessage("hi", "", "lx5vjquCWGByxrCFSDHf4C1W1XOjdH1m+JGz8bIJIBc=")
+	assert.Nil(t, err)
+}

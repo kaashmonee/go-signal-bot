@@ -83,8 +83,16 @@ func (b *Bot) receive() ([]Event, error) {
 	return unmarshalToEvents(out)
 }
 
-func (b *Bot) sendMessage(message string) error {
-	cmd := exec.Command("java", "-jar", "/Users/kaashmonee/signal-cli/build/libs/signal-cli-fat-0.12.8-SNAPSHOT.jar", "-u", b.Number, "send", "-m", message, "+12246000039")
+func (b *Bot) sendMessage(message, recipient, groupID string) error {
+	cmdString := []string{"-jar", "/Users/kaashmonee/signal-cli/build/libs/signal-cli-fat-0.12.8-SNAPSHOT.jar", "-u", b.Number, "send", "-m", message}
+	if groupID != "" {
+		cmdString = append(cmdString, "-g", groupID)
+	} else {
+		cmdString = append(cmdString, recipient)
+	}
+
+	log.Printf("executing with command: %v", cmdString)
+	cmd := exec.Command("java", cmdString...)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
 		return err
@@ -129,7 +137,8 @@ func (b *Bot) Start() {
 				continue
 			}
 
-			b.sendMessage(response)
+			err = b.sendMessage(response, evnt.Envelope.SourceNumber, evnt.Envelope.DataMessage.GroupInfo.GroupID)
+			log.Printf("encountered error while trying to execute command with error: %v", err)
 		}
 	}
 }
