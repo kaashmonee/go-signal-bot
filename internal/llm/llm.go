@@ -2,7 +2,6 @@ package llm
 
 import (
 	"context"
-	"encoding/json"
 	"os"
 
 	"github.com/ayush6624/go-chatgpt"
@@ -11,6 +10,18 @@ import (
 type ChatClient struct {
 	*chatgpt.Client
 	ctx context.Context
+}
+
+type Message struct {
+	Content string `json:"content"`
+}
+
+type Choice struct {
+	Message Message `json:"message"`
+}
+
+type Response struct {
+	Choices []Choice
 }
 
 func NewChatClient() (*ChatClient, error) {
@@ -30,10 +41,9 @@ func (c *ChatClient) SendWithResponse(message string) (string, error) {
 		return "", err
 	}
 
-	formatted, err := json.MarshalIndent(res, "", "  ")
-	if err != nil {
-		return "", err
+	if len(res.Choices) == 0 {
+		return "", nil
 	}
 
-	return string(formatted), nil
+	return res.Choices[0].Message.Content, nil
 }

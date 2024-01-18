@@ -1,8 +1,16 @@
 package main
 
-import "github.com/kaashmonee/signallm/internal/bot"
+import (
+	"log"
+
+	"github.com/kaashmonee/signallm/internal/bot"
+)
 
 func main() {
-	b := bot.NewBot()
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	b, err := bot.NewBot()
+	if err != nil {
+		log.Fatalf("error: %s", err.Error())
+	}
 	b.Start()
 }
