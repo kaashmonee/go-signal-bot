@@ -2,6 +2,7 @@ package llm
 
 import (
 	"context"
+	"log"
 	"os"
 
 	"github.com/ayush6624/go-chatgpt"
@@ -10,6 +11,12 @@ import (
 type ChatClient struct {
 	*chatgpt.Client
 	ctx context.Context
+}
+
+type SendRequest struct {
+	Message string
+	Model   chatgpt.ChatGPTModel
+	User    string
 }
 
 type Message struct {
@@ -38,6 +45,31 @@ func NewChatClient() (*ChatClient, error) {
 func (c *ChatClient) SendWithResponse(message string) (string, error) {
 	res, err := c.SimpleSend(c.ctx, message)
 	if err != nil {
+		return "", err
+	}
+
+	if len(res.Choices) == 0 {
+		return "", nil
+	}
+
+	return res.Choices[0].Message.Content, nil
+}
+
+func (c *ChatClient) SendWithResponseAndModel(request SendRequest) (string, error) {
+	req := &chatgpt.ChatCompletionRequest{
+		Model: request.Model,
+		Messages: []chatgpt.ChatMessage{
+			{
+				Role:    chatgpt.ChatGPTModelRoleUser,
+				Content: request.Message,
+			},
+		},
+		User: request.User,
+	}
+
+	res, err := c.Send(c.ctx, req)
+	if err != nil {
+		log.Printf("error sending message: %v", err)
 		return "", err
 	}
 

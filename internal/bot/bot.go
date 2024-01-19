@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/ayush6624/go-chatgpt"
 	"github.com/kaashmonee/signallm/internal/llm"
 	"github.com/kaashmonee/signallm/internal/util"
 )
@@ -111,7 +112,16 @@ func (b *Bot) generateResponse(evnt Event) (string, error) {
 		return "", nil
 	}
 
-	resp, err := b.Client.SendWithResponse(msg)
+	identifier := evnt.Envelope.DataMessage.GroupInfo.GroupID
+	if identifier == "" {
+		identifier = evnt.Envelope.SourceNumber
+	}
+
+	resp, err := b.Client.SendWithResponseAndModel(llm.SendRequest{
+		Message: msg,
+		Model:   chatgpt.GPT4_0613,
+		User:    identifier,
+	})
 	if err != nil {
 		return "", err
 	}
